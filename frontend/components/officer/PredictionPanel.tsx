@@ -2,6 +2,7 @@
 import React, { useState } from "react";
 import api from "../../lib/api";
 import { useToasts } from "../Toast";
+import AgentOpinionPanel from "./AgentOpinionPanel"; // 1. Import the new component
 
 type FeaturesInput = {
   person_age: number;
@@ -15,6 +16,13 @@ type FeaturesInput = {
   loan_percent_income: number;
   cb_person_default_on_file: string;
   cb_person_cred_hist_length: number;
+};
+
+// 2. Update Result type to include probability
+type PredictionResult = {
+  predicted_score: number;
+  predicted_label: string;
+  probability: number;
 };
 
 export default function PredictionPanel() {
@@ -32,7 +40,8 @@ export default function PredictionPanel() {
     cb_person_default_on_file: "N",
     cb_person_cred_hist_length: 5,
   });
-  const [result, setResult] = useState<{ predicted_score: number; predicted_label: string } | null>(null);
+
+  const [result, setResult] = useState<PredictionResult | null>(null);
   const [loading, setLoading] = useState(false);
 
   const handleChange = (key: keyof FeaturesInput, value: string | number) =>
@@ -43,9 +52,17 @@ export default function PredictionPanel() {
     setResult(null);
     try {
       const res = await api.post("/model/predict", input);
+      
+      // 3. Extract the probability of default (Class 1)
+      // The API returns [prob_class_0, prob_class_1], so we grab index 1
+      const probDefault = res.data.probability && res.data.probability.length > 1 
+        ? res.data.probability[1] 
+        : 0;
+
       setResult({
         predicted_score: res.data.prediction,
         predicted_label: res.data.prediction === 1 ? "Bad" : "Good",
+        probability: probDefault,
       });
       pushToast({ type: "success", message: "Prediction generated successfully!" });
     } catch (err: any) {
@@ -85,13 +102,23 @@ export default function PredictionPanel() {
       </button>
 
       {result && (
-        <div className="mt-4 p-4 bg-slate-100 rounded">
-          <p>
-            <strong>Predicted Score:</strong> {result.predicted_score}
-          </p>
-          <p>
-            <strong>Predicted Label:</strong> {result.predicted_label}
-          </p>
+        <div className="mt-6 space-y-6">
+          {/* Original Result Box */}
+          <div className="p-4 bg-slate-100 rounded border border-slate-200">
+            <p>
+              <strong>Predicted Score:</strong> {result.predicted_score}
+            </p>
+            <p>
+              <strong>Predicted Label:</strong> {result.predicted_label}
+            </p>
+          </div>
+
+          {/* 4. The New Agent Opinion Panel */}
+          <AgentOpinionPanel 
+            features={input} 
+            prediction={result.predicted_score} 
+            probability={result.probability} 
+          />
         </div>
       )}
     </section>
