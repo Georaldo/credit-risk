@@ -9,7 +9,7 @@ export default function Protected({ children }: { children: any }) {
   const router = useRouter();
 
   useEffect(() => {
-    const token = localStorage.getItem("sc_token");
+    const token = localStorage.getItem("token");
     if (!token) router.push("/login");
   }, []);
 
