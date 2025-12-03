@@ -1,5 +1,6 @@
-// frontend/components/officer/AgentOpinionPanel.tsx
+"use client";
 import { useState } from 'react';
+import api from '../../lib/api';
 
 interface AgentResponse {
   assessment_summary: string;
@@ -24,23 +25,16 @@ export default function AgentOpinionPanel({ features, prediction, probability }:
     
     setLoading(true);
     try {
-      const res = await fetch('http://localhost:8000/officer/agent-evaluation', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}` // Assuming you store token here
-        },
-        body: JSON.stringify({
-          features,
-          model_prediction: prediction,
-          model_probability: probability
-        })
+      // Using 'api' instance automatically handles the base URL and headers
+      const res = await api.post('/officer/agent-evaluation', {
+        features,
+        model_prediction: prediction,
+        model_probability: probability
       });
       
-      const data = await res.json();
-      setAnalysis(data);
+      setAnalysis(res.data);
     } catch (err) {
-      console.error(err);
+      console.error("Agent API Error:", err);
     } finally {
       setLoading(false);
     }
@@ -88,9 +82,14 @@ export default function AgentOpinionPanel({ features, prediction, probability }:
                 ✅ Positive Factors
               </h4>
               <ul className="list-disc pl-4 space-y-1">
-                {analysis.positive_factors.map((factor, i) => (
-                  <li key={i} className="text-sm text-gray-600">{factor}</li>
-                ))}
+                {/* SAFE GUARD: Check if array exists and has items */}
+                {analysis.positive_factors?.length > 0 ? (
+                  analysis.positive_factors.map((factor, i) => (
+                    <li key={i} className="text-sm text-gray-600">{factor}</li>
+                  ))
+                ) : (
+                  <li className="text-sm text-gray-400 italic">None identified</li>
+                )}
               </ul>
             </div>
 
@@ -100,9 +99,14 @@ export default function AgentOpinionPanel({ features, prediction, probability }:
                 ⚠️ Key Concerns
               </h4>
               <ul className="list-disc pl-4 space-y-1">
-                {analysis.key_concerns.map((concern, i) => (
-                  <li key={i} className="text-sm text-gray-600">{concern}</li>
-                ))}
+                {/* SAFE GUARD: Check if array exists and has items */}
+                {analysis.key_concerns?.length > 0 ? (
+                  analysis.key_concerns.map((concern, i) => (
+                    <li key={i} className="text-sm text-gray-600">{concern}</li>
+                  ))
+                ) : (
+                  <li className="text-sm text-gray-400 italic">None identified</li>
+                )}
               </ul>
             </div>
           </div>

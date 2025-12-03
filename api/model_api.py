@@ -81,42 +81,64 @@ def delete_model(name: str):
 # Prediction endpoint uses active model
 @router.post("/predict")
 def predict(payload: Dict[str, Any] = Body(...)):
-    # payload: { model_name (optional), <feature>: value ... }
+    # 1. Parse Input
     model_name = payload.get("model_name")
     features_input = {k:v for k,v in payload.items() if k != "model_name"}
-    # pick model_name: explicit or active
+
+    # 2. Determine Model Name
     if model_name is None:
         if os.path.exists(ACTIVE_MODEL_FILE):
             with open(ACTIVE_MODEL_FILE, "r") as f:
                 model_name = f.read().strip()
         else:
             raise HTTPException(status_code=404, detail="No active model and no model_name supplied")
+
+    # 3. Load Resources
     mpath = model_path(model_name)
     preproc_path = os.path.join(MODEL_DIR, PREPROCESSOR_NAME)
     feature_list_path = os.path.join(MODEL_DIR, FEATURE_LIST_NAME)
+
     if not os.path.exists(mpath):
         raise HTTPException(status_code=404, detail="Model not found")
+
     try:
         model = joblib.load(mpath)
         preprocessor = joblib.load(preproc_path) if os.path.exists(preproc_path) else None
+        # We still load this, but we use it differently depending on if we have a preprocessor
         features = joblib.load(feature_list_path) if os.path.exists(feature_list_path) else list(features_input.keys())
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Load failed: {e}")
+
+    # 4. Create DataFrame from Input
     import pandas as pd
     df = pd.DataFrame([features_input])
-    for col in features:
-        if col not in df.columns:
-            df[col] = 0
-    X = df[features]
+
     if preprocessor is not None:
-        X_trans = preprocessor.transform(X)
+        # CASE A: We have a Preprocessor (e.g., ColumnTransformer)
+        # Pass the RAW dataframe directly. The preprocessor expects 'loan_grade', 'person_age', etc.
+        # Do NOT filter by 'features' here, because 'features' usually contains the OHE columns (loan_grade_A, etc.)
+        try:
+            X_trans = preprocessor.transform(df)
+        except ValueError as e:
+             # This helps debug if the Frontend is actually missing a field
+            raise HTTPException(status_code=400, detail=f"Preprocessor Error: {str(e)}")
     else:
+        # CASE B: No Preprocessor (The model expects raw numeric inputs directly)
+        # Ensure 'df' matches the model's expected feature list exactly
+        for col in features:
+            if col not in df.columns:
+                df[col] = 0
+        X = df[features]
         X_trans = X.values
+
+    # 5. Predict
     try:
         pred = model.predict(X_trans)[0]
+        # Check if probability is supported
         proba = model.predict_proba(X_trans)[0].tolist() if hasattr(model, "predict_proba") else None
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
     return {"prediction": int(pred), "probability": proba, "model": model_name}
 
 # Explain wrapper (call your existing SHAP explainer if present)

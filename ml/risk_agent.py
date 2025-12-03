@@ -52,8 +52,8 @@ def evaluate_application_risk(customer_data: dict, model_prediction: int, model_
         print(f"Agent Error: {e}")
         return {
             "assessment_summary": "Agent unavailable. Please rely on model score.",
-            "key_concerns": ["Agent Error"],
-            "positive_factors": [],
+            "key_concerns": ["Agent Error"],      
+            "positive_factors": [],               
             "recommendation": "Manual Review",
             "confidence_score": 0
         }
