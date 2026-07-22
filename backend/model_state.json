@@ -1,0 +1,39 @@
+{
+    "model_metric": 0.94,
+    "model_f1": 0.8273,
+    "model_version": "v1.0",
+    "model_name": "RandomForestClassifier",
+    "model_params": {},
+    "system_status": "Healthy",
+    "reference_stats": {
+        "min_income": 4000.0,
+        "max_income": 6600000.000000001,
+        "mean_income": 66074.84846996715
+    },
+    "feature_importance": [
+        {
+            "feature": "loan_percent_income",
+            "importance": 0.20422815117854923
+        },
+        {
+            "feature": "person_income",
+            "importance": 0.16032931390193456
+        },
+        {
+            "feature": "loan_int_rate",
+            "importance": 0.1288156521276131
+        },
+        {
+            "feature": "loan_amnt",
+            "importance": 0.07691975638038728
+        },
+        {
+            "feature": "loan_grade_D",
+            "importance": 0.05793182797136889
+        }
+    ],
+    "risk_thresholds": {
+        "low": 0.052855978054148045,
+        "high": 0.5321953637109582
+    }
+}

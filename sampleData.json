@@ -1,0 +1,41 @@
+{
+  "Approved": {
+    "person_name": "may",
+    "person_age": 28,
+    "person_income": 65000,
+    "person_home_ownership": "OWN",
+    "person_emp_length": 5,
+    "loan_intent": "VENTURE",
+    "loan_grade": "E",
+    "loan_amnt": 45000,
+    "loan_int_rate": 9.5,
+    "cb_person_default_on_file": "N",
+    "cb_person_cred_hist_length": 4
+  },
+  "Denied": {
+    "person_name": "may",
+    "person_age": 28,
+    "person_income": 65000,
+    "person_home_ownership": "RENT",
+    "person_emp_length": 5,
+    "loan_intent": "VENTURE",
+    "loan_grade": "C",
+    "loan_amnt": 30000,
+    "loan_int_rate": 9.5,
+    "cb_person_default_on_file": "N",
+    "cb_person_cred_hist_length": 6
+  },
+  "Pending": {
+    "person_name": "may",
+    "person_age": 28,
+    "person_income": 65000,
+    "person_home_ownership": "OWN",
+    "person_emp_length": 5,
+    "loan_intent": "VENTURE",
+    "loan_grade": "E",
+    "loan_amnt": 45000,
+    "loan_int_rate": 7.5,
+    "cb_person_default_on_file": "N",
+    "cb_person_cred_hist_length": 4
+  }
+}
